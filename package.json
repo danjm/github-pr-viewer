@@ -1,0 +1,8 @@
+{
+  "name": "github-pr-viewer",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/danjm/github-pr-viewer.git",
+  "author": "Dan J Miller <danjm.com@gmail.com>",
+  "license": "MIT"
+}

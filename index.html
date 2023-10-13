@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub PRs Grouped by Team and Author</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>Open Pull Requests Grouped by Team and Author</h1>
+    <div id="teams"></div>
+
+    <script>
+        const repoOwner = 'MetaMask';
+        const repoName = 'metamask-extension';
+        const githubToken = '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'; // Replace with your GitHub personal access token
+
+        const teams = {
+            "Accounts": ['k-g-j', 'gantunesr', 'montelaidev', 'danroc', 'HowardBraham'],
+            "ExtensionUX": ['darkwing', 'vthomas13', 'NidhiKJha'],
+            "ExtensionPlatform": ['chloeYue', 'DDDDDanica', 'danjm', 'gauthierpetetin'],
+            "DappAPI": ['tmashuang', 'jiexi', 'BelfordZ'],
+            "ConfirmationUX": ['digiwand', 'segun', 'jpuri'],
+            "ConfirmationSystems": ['OGPoyraz', 'vinistevam', 'matthewwalsh0', 'cryptotavares'],
+            "DesignSystems": ['georgewrmarshall', 'garrettbear'],
+            "Snaps": ['david0xd', 'hmalik88', 'Montoya', 'Mrtenz', 'FrederikBolding'],
+            "Assets": ['salimtb', 'sahar-fehri', 'bergeron'],
+            "Linea": ['VGau'],
+            "LavaMoat": ['weizman', 'legobeat'],
+            "SharedLibraries": ['mikesposito'],
+        };
+
+        // Add "Unknown/Other" team and initialize it as an empty array
+        teams["Unknown/Other"] = [];
+
+        // Sort teams alphabetically
+        const sortedTeams = Object.keys(teams).sort();
+
+        const headers = {
+            'Authorization': `token ${githubToken}`
+        };
+
+        // Function to fetch and display open PRs grouped by team and author
+        function fetchOpenPRs() {
+            $.ajax({
+                url: `https://api.github.com/repos/${repoOwner}/${repoName}/pulls?state=open&per_page=100`, // Fetch the most recent 100 open PRs
+                headers: headers,
+                method: 'GET',
+                dataType: 'json',
+                success: function (data) {
+                    const prsByTeam = {};
+
+                    data.forEach(pr => {
+                        const author = pr.user.login;
+                        let teamFound = false;
+
+                        // Find the team that the author belongs to
+                        for (const teamName of sortedTeams) {
+                            if (teams[teamName].includes(author)) {
+                                if (!prsByTeam[teamName]) {
+                                    prsByTeam[teamName] = [];
+                                }
+                                const statusEmoji = pr.draft ? '🚧' : '🟢'; // Green circle for non-draft, construction for draft
+                                prsByTeam[teamName].push({ title: `${statusEmoji} <a href="${pr.html_url}" target="_blank">${pr.title}</a> by ${pr.author}` });
+                                teamFound = true;
+                                break;
+                            }
+                        }
+
+                        // If the author is not in any team, add them to "Unknown/Other"
+                        if (!teamFound) {
+                            prsByTeam['Unknown/Other'] = prsByTeam['Unknown/Other'] || [];
+                            const statusEmoji = pr.draft ? '🚧' : '🟢'; // Green circle for non-draft, construction for draft
+                            prsByTeam['Unknown/Other'].push({ title: `${statusEmoji} <a href="${pr.html_url}" target="_blank">${pr.title}</a> by ${pr.author}` });
+                        }
+                    });
+
+                    const teamsContainer = $('#teams');
+                    for (const teamName of sortedTeams) {
+                        const prs = prsByTeam[teamName];
+                        const teamContainer = $('<div>').addClass('team-container');
+                        const teamHeader = $('<h2>').text(`Team: ${teamName}`);
+                        const prList = $('<ul>');
+
+                        prs.forEach(pr => {
+                            const prItem = $('<li>').html(pr.title);
+                            prList.append(prItem);
+                        });
+
+                        teamContainer.append(teamHeader);
+                        teamContainer.append(prList);
+                        teamsContainer.append(teamContainer);
+                    }
+                },
+                error: function (error) {
+                    console.error('Error fetching PRs:', error);
+                }
+            });
+        }
+
+        $(document).ready(function () {
+            fetchOpenPRs();
+        });
+    </script>
+
+    <style>
+        .team-container {
+            margin-bottom: 20px;
+        }
+        h2 {
+            font-size: 18px;
+        }
+        ul {
+            list-style: none;
+        }
+        li {
+            margin-bottom: 5px;
+        }
+    </style>
+</body>
+</html>
