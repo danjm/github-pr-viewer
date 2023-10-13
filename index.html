@@ -13,7 +13,6 @@
     <script>
         const repoOwner = 'MetaMask';
         const repoName = 'metamask-extension';
-        const githubToken = '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'; // Replace with your GitHub personal access token
 
         const teams = {
             "Accounts": ['k-g-j', 'gantunesr', 'montelaidev', 'danroc', 'HowardBraham'],
@@ -36,15 +35,10 @@
         // Sort teams alphabetically
         const sortedTeams = Object.keys(teams).sort();
 
-        const headers = {
-            'Authorization': `token ${githubToken}`
-        };
-
         // Function to fetch and display open PRs grouped by team and author
         function fetchOpenPRs() {
             $.ajax({
                 url: `https://api.github.com/repos/${repoOwner}/${repoName}/pulls?state=open&per_page=100`, // Fetch the most recent 100 open PRs
-                headers: headers,
                 method: 'GET',
                 dataType: 'json',
                 success: function (data) {
